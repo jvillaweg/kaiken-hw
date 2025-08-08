@@ -46,7 +46,7 @@ Choose one of the following options:
 
 1. **Clone and Navigate**
    ```bash
-   cd C:\Users\chupe\OneDrive\Desktop\keiken
+   cd C:\*\kaiken-hw
    ```
 
 2. **Start All Services**
