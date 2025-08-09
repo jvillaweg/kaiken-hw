@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator, ConfigDict
+from pydantic import BaseModel, validator
 from typing import List, Optional
 from datetime import datetime
 
@@ -10,9 +10,10 @@ class ProductBase(BaseModel):
     unit_cost: float
     description: Optional[str] = None
     
-    @field_validator('unit_sale_price')
-    @classmethod
-    def sale_price_must_be_greater_than_cost(cls, v):
+    @validator('unit_sale_price')
+    def sale_price_must_be_greater_than_cost(cls, v, values):
+        if 'unit_cost' in values and v <= values['unit_cost']:
+            raise ValueError('Sale price must be greater than cost')
         return v
 
 class ProductCreate(ProductBase):
@@ -28,7 +29,8 @@ class ProductUpdate(BaseModel):
 class Product(ProductBase):
     id: int
     
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 # Tender schemas
 class TenderBase(BaseModel):
@@ -46,7 +48,8 @@ class Tender(TenderBase):
     id: int
     award_date: datetime
     
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 # Order schemas
 class OrderBase(BaseModel):
@@ -54,8 +57,7 @@ class OrderBase(BaseModel):
     product_id: int
     awarded_quantity: int
     
-    @field_validator('awarded_quantity')
-    @classmethod
+    @validator('awarded_quantity')
     def quantity_must_be_positive(cls, v):
         if v <= 0:
             raise ValueError('Awarded quantity must be positive')
@@ -72,7 +74,8 @@ class OrderUpdate(BaseModel):
 class Order(OrderBase):
     id: int
     
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 # Response schemas with relationships
 class OrderWithDetails(Order):
@@ -91,4 +94,5 @@ class TenderSummary(BaseModel):
     product_count: int
     total_margin: float
     
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
