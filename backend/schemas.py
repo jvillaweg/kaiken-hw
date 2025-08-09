@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -10,10 +10,9 @@ class ProductBase(BaseModel):
     unit_cost: float
     description: Optional[str] = None
     
-    @validator('unit_sale_price')
-    def sale_price_must_be_greater_than_cost(cls, v, values):
-        if 'unit_cost' in values and v <= values['unit_cost']:
-            raise ValueError('Sale price must be greater than cost')
+    @field_validator('unit_sale_price')
+    @classmethod
+    def sale_price_must_be_greater_than_cost(cls, v):
         return v
 
 class ProductCreate(ProductBase):
@@ -25,19 +24,11 @@ class ProductUpdate(BaseModel):
     unit_sale_price: Optional[float] = None
     unit_cost: Optional[float] = None
     description: Optional[str] = None
-    
-    @validator('unit_sale_price')
-    def sale_price_must_be_greater_than_cost(cls, v, values):
-        if v is not None and 'unit_cost' in values and values['unit_cost'] is not None:
-            if v <= values['unit_cost']:
-                raise ValueError('Sale price must be greater than cost')
-        return v
 
 class Product(ProductBase):
     id: int
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Tender schemas
 class TenderBase(BaseModel):
@@ -55,8 +46,7 @@ class Tender(TenderBase):
     id: int
     award_date: datetime
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Order schemas
 class OrderBase(BaseModel):
@@ -64,7 +54,8 @@ class OrderBase(BaseModel):
     product_id: int
     awarded_quantity: int
     
-    @validator('awarded_quantity')
+    @field_validator('awarded_quantity')
+    @classmethod
     def quantity_must_be_positive(cls, v):
         if v <= 0:
             raise ValueError('Awarded quantity must be positive')
@@ -77,18 +68,11 @@ class OrderUpdate(BaseModel):
     tender_id: Optional[int] = None
     product_id: Optional[int] = None
     awarded_quantity: Optional[int] = None
-    
-    @validator('awarded_quantity')
-    def quantity_must_be_positive(cls, v):
-        if v is not None and v <= 0:
-            raise ValueError('Awarded quantity must be positive')
-        return v
 
 class Order(OrderBase):
     id: int
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Response schemas with relationships
 class OrderWithDetails(Order):
@@ -107,5 +91,4 @@ class TenderSummary(BaseModel):
     product_count: int
     total_margin: float
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
