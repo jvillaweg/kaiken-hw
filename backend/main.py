@@ -17,6 +17,7 @@ app = FastAPI(
 
 # CORS middleware - handle both development and production
 allowed_origins = [
+    "https://serene-adaptation-production.up.railway.app/",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
