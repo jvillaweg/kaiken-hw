@@ -1,18 +1,12 @@
-FROM node:18-alpine
-
+FROM node:18 AS build
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies with legacy peer deps to handle conflicts
 RUN npm install --legacy-peer-deps
-
-# Copy application code
 COPY . .
+RUN npm run build
 
-# Expose port
-EXPOSE 3000
-
-# Command to run the application
-CMD ["npm", "start"]
+# Serve static files with nginx
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
